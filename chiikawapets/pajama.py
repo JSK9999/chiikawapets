@@ -67,9 +67,9 @@ def _wave(i: int, n: int) -> Pose:
 def _jump(i: int, n: int) -> Pose:
     table = [
         Pose(dy=6, sx=1.1, sy=0.88),
-        Pose(dy=-24, sx=0.94, sy=1.1, arm_l=60, arm_r=60),
-        Pose(dy=-38, arm_l=140, arm_r=140, foot_l=4, foot_r=4),
-        Pose(dy=-18, sy=1.04, arm_l=90, arm_r=90),
+        Pose(dy=-12, sx=0.94, sy=1.04, arm_l=60, arm_r=60),
+        Pose(dy=-18, arm_l=140, arm_r=140, foot_l=4, foot_r=4),
+        Pose(dy=-10, sy=1.03, arm_l=90, arm_r=90),
         Pose(dy=5, sx=1.08, sy=0.9),
     ]
     return table[i % len(table)]
@@ -137,28 +137,30 @@ class PajamaPainter:
         self._body(p)
         self._face(p, pose)
         self._buttons(p)
-        self._arm(p, -58, -46, pose.arm_l, left=True)
-        self._arm(p, 58, -46, pose.arm_r, left=False)
+        self._arm(p, -56, -42, pose.arm_l, left=True)
+        self._arm(p, 56, -42, pose.arm_r, left=False)
         if pose.sweat:
             self._sweat(p)
         p.restore()
 
     def _body(self, p: QPainter) -> None:
         p.setBrush(QBrush(self.fill))
-        path = QPainterPath()
-        path.addEllipse(QRectF(-67, -134, 134, 132))
-        p.drawPath(path)
+        head = QPainterPath()
+        head.addEllipse(QRectF(-72, -162, 144, 144))
+        lower = QPainterPath()
+        lower.addRoundedRect(QRectF(-58, -90, 116, 88), 40, 40)
+        p.drawPath(head.united(lower).simplified())
 
     def _face(self, p: QPainter, pose: Pose) -> None:
         fx, fy = pose.face
-        centre = QPointF(fx, -84 + fy)
+        centre = QPointF(fx, -92 + fy)
         p.setBrush(QBrush(FACE))
-        p.drawEllipse(centre, 51, 49)
+        p.drawEllipse(centre, 61, 56)
         pen = QPen(BLUSH, 3.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap)
         p.setPen(pen)
         for side in (-1, 1):
-            cx = fx + side * 26
-            cy = -76 + fy
+            cx = fx + side * 30
+            cy = -82 + fy
             if pose.marks == "x":
                 p.drawLine(QPointF(cx - 6, cy - 6), QPointF(cx + 6, cy + 6))
                 p.drawLine(QPointF(cx - 6, cy + 6), QPointF(cx + 6, cy - 6))
@@ -171,7 +173,7 @@ class PajamaPainter:
     def _buttons(self, p: QPainter) -> None:
         p.setBrush(QBrush(self.shade))
         p.setPen(QPen(OUTLINE, 3))
-        for y in (-27, -13):
+        for y in (-28, -14):
             p.drawEllipse(QPointF(0, y), 4.5, 4.5)
         p.setPen(QPen(OUTLINE, LINE, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
 
@@ -191,23 +193,23 @@ class PajamaPainter:
     def _ears(self, p: QPainter) -> None:
         p.setBrush(QBrush(self.fill))
         if self.ears == "bumps":
-            for x in (-34, 34):
-                p.drawEllipse(QPointF(x, -130), 11, 10)
-            p.drawEllipse(QPointF(0, -138), 7, 9)
-        elif self.ears == "round":
             for x in (-40, 40):
-                p.drawEllipse(QPointF(x, -126), 15, 14)
+                p.drawEllipse(QPointF(x, -152), 11, 10)
+            p.drawEllipse(QPointF(0, -165), 7, 9)
+        elif self.ears == "round":
+            for x in (-48, 48):
+                p.drawEllipse(QPointF(x, -148), 15, 14)
         elif self.ears == "tall":
-            for x in (-38, 38):
-                p.drawEllipse(QRectF(x - 11, -148, 22, 30))
+            for x in (-44, 44):
+                p.drawEllipse(QRectF(x - 11, -174, 22, 32))
         else:  # horn
-            path = QPainterPath(QPointF(-12, -124))
-            path.lineTo(QPointF(0, -160))
-            path.lineTo(QPointF(12, -124))
+            path = QPainterPath(QPointF(-12, -150))
+            path.lineTo(QPointF(0, -176))
+            path.lineTo(QPointF(12, -150))
             path.closeSubpath()
             p.drawPath(path)
-            for x in (-38, 38):
-                p.drawEllipse(QPointF(x, -126), 10, 9)
+            for x in (-46, 46):
+                p.drawEllipse(QPointF(x, -148), 10, 9)
 
     def _tail(self, p: QPainter) -> None:
         p.setBrush(QBrush(self.fill))
@@ -219,9 +221,9 @@ class PajamaPainter:
     def _sweat(self, p: QPainter) -> None:
         p.setBrush(QBrush(SWEAT))
         p.setPen(QPen(OUTLINE, 3))
-        path = QPainterPath(QPointF(58, -128))
-        path.cubicTo(QPointF(50, -112), QPointF(50, -104), QPointF(58, -104))
-        path.cubicTo(QPointF(66, -104), QPointF(66, -112), QPointF(58, -128))
+        path = QPainterPath(QPointF(70, -150))
+        path.cubicTo(QPointF(62, -134), QPointF(62, -126), QPointF(70, -126))
+        path.cubicTo(QPointF(78, -126), QPointF(78, -134), QPointF(70, -150))
         p.drawPath(path)
 
 
