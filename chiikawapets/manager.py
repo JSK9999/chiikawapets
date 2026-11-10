@@ -5,13 +5,14 @@ import random
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QPoint
+from PySide6.QtCore import QPoint, QTimer
 from PySide6.QtGui import QAction, QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from . import macos
 from .catalog import CHARACTERS, GENERATED, SIZE_PRESETS
 from .config import Config
+from .dance import GroupDance
 from .motion import Brain, Plan
 from .paths import sheet_path
 from .pet import PetWindow
@@ -26,6 +27,7 @@ class PetManager:
         self.pets: list[PetWindow] = []
         self._sheets: dict[tuple[str, int, float], SpriteSheet] = {}
         self._last_greet: dict[int, float] = {}
+        self.dance = GroupDance(self)
         self.tray = self._build_tray()
 
     # ----- assets ---------------------------------------------------------
@@ -45,8 +47,11 @@ class PetManager:
             return None
         sheet = self.sheet(key)
         avail = QGuiApplication.primaryScreen().availableGeometry()
+        max_x = max(avail.left(), avail.right() - sheet.size.width() + 1)
         if x is None:
-            x = random.uniform(avail.left(), max(avail.left(), avail.right() - sheet.size.width()))
+            x = random.uniform(avail.left(), max_x)
+        # A window first shown off-screen never paints on macOS, so clamp.
+        x = min(max(x, float(avail.left())), float(max_x))
         pet = PetWindow(key, sheet, self, x, y)
         pet.show()
         macos.show_on_all_spaces(int(pet.winId()), self.config.all_spaces)
@@ -59,6 +64,7 @@ class PetManager:
     def remove(self, pet: PetWindow) -> None:
         if pet in self.pets:
             self.pets.remove(pet)
+        self.dance.arrived(pet)
         pet.close()
         pet.deleteLater()
         self.config.pets = [p.key for p in self.pets]
@@ -81,6 +87,12 @@ class PetManager:
         for pet in self.pets:
             macos.show_on_all_spaces(int(pet.winId()), enabled)
 
+    def summon_pajama(self) -> None:
+        present = {p.key for p in self.pets}
+        for key in sorted(GENERATED - present):
+            self.spawn(key)
+        QTimer.singleShot(1500, self.dance.start)
+
     def everyone(self, state: str) -> None:
         for pet in self.pets:
             pet.do(state)
@@ -88,10 +100,10 @@ class PetManager:
     def suggest_plan(self, pet: PetWindow) -> Plan | None:
         """Occasionally make two nearby pets greet each other."""
         now = time.monotonic()
-        if now - self._last_greet.get(id(pet), 0.0) < GREET_COOLDOWN_S or random.random() > 0.5:
+        if pet.locked or now - self._last_greet.get(id(pet), 0.0) < GREET_COOLDOWN_S or random.random() > 0.5:
             return None
         for other in self.pets:
-            if other is pet or other.body.airborne or other.paused:
+            if other is pet or other.body.airborne or other.paused or other.locked:
                 continue
             if abs(other.body.x - pet.body.x) < pet.width() * 1.3 and abs(other.body.y - pet.body.y) < pet.height():
                 self._last_greet[id(pet)] = self._last_greet[id(other)] = now
@@ -123,7 +135,8 @@ class PetManager:
         spaces.setChecked(self.config.all_spaces)
         spaces.toggled.connect(self.set_all_spaces)
         pajama = menu.addAction("파자마 파티즈 4명 소환")
-        pajama.triggered.connect(lambda: [self.spawn(k) for k in sorted(GENERATED)])
+        pajama.triggered.connect(self.summon_pajama)
+        menu.addAction("파자마 파티즈 단체 춤").triggered.connect(self.dance.start)
         menu.addSeparator()
         menu.addAction("모두 인사").triggered.connect(lambda: self.everyone("waving"))
         menu.addAction("모두 점프").triggered.connect(lambda: self.everyone("jumping"))

@@ -32,6 +32,10 @@ class Animator:
         if state != self.state:
             self.state, self.index, self._elapsed = state, 0, 0.0
 
+    def sync(self, state: str, index: int = 0) -> None:
+        """Hard-reset timing so several animators run in lockstep."""
+        self.state, self.index, self._elapsed = state, index, 0.0
+
     def step(self, dt_ms: float) -> None:
         _, count, frame_ms = STATES[self.state]
         if frame_ms <= 0:

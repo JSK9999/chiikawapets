@@ -43,6 +43,8 @@ class PetWindow(QWidget):
         self.plan_elapsed = 0.0
         self.paused = False
         self.tossed = False
+        self.locked = False  # choreography owns this pet; Brain stays quiet
+        self.goal_x: float | None = None
         self._press: QPoint | None = None
         self._double = False
         self._dragging = False
@@ -72,9 +74,30 @@ class PetWindow(QWidget):
         if plan.state == "jumping":
             self.body.jump()
 
+    def walk_to(self, x: float) -> None:
+        """Walk until the sprite's left edge reaches x, then report arrival."""
+        self.goal_x = x
+        self.start_plan(Plan("idle", 1))
+
+    def _steer_to_goal(self) -> bool:
+        """Returns True when the goal has just been reached."""
+        if self.goal_x is None:
+            return False
+        delta = self.goal_x - self.body.x
+        if abs(delta) < 3:
+            self.body.x, self.goal_x = self.goal_x, None
+            self.start_plan(Plan("idle", 10**9))
+            self.manager.dance.arrived(self)
+            return True
+        want = 1 if delta > 0 else -1
+        if self.plan.direction != want:
+            self.start_plan(Plan("running-right" if want > 0 else "running-left", 10**9, want))
+        return False
+
     def do(self, state: str) -> None:
         """User-requested action from a menu."""
         self.paused = False
+        self.locked, self.goal_x = False, None
         if state.startswith("running"):
             self.start_plan(Plan(state, 5000, 1 if state.endswith("right") else -1))
         elif state in ("idle", "waiting", "review"):
@@ -103,11 +126,13 @@ class PetWindow(QWidget):
 
     def _run_plan(self, dt: float, dt_ms: float) -> None:
         self.plan_elapsed += dt_ms
+        if self._steer_to_goal():
+            return
         if self.plan.direction and not self.body.airborne:
             moved = self.body.walk(self.plan.direction, dt, self.bounds())
             if moved != self.plan.direction:
                 self.start_plan(Plan("running-right" if moved > 0 else "running-left", self.plan.duration_ms, moved))
-        if self.plan_elapsed >= self.plan.duration_ms and not self.body.airborne:
+        if self.plan_elapsed >= self.plan.duration_ms and not self.body.airborne and not self.locked:
             self.start_plan(self.manager.suggest_plan(self) or self.brain.next_plan(self.facing))
         self.anim.set_state(self._visible_state())
 
