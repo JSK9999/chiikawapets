@@ -16,6 +16,17 @@ CHARACTERS: dict[str, str] = {
     "furuhonya": "후루혼야",
     "anoko": "아노코",
     "dekatsuyo": "데카츠요",
+    "usagi-pajama": "우사기 (파자마)",
+}
+# Characters built from a single looping GIF instead of the reference repo's sheet.
+# The GIF is fetched to <assets>/<id>/source.gif (or dropped there by hand), the
+# character is cut out by colour (hue ranges in degrees) and laid out as a sheet.
+GIF_SOURCES: dict[str, dict] = {
+    "usagi-pajama": {
+        "url": "https://media1.tenor.com/m/J95LX7D_bhoAAAAC/%E3%81%A1%E3%81%84%E3%81%8B%E3%82%8F-%E3%81%86%E3%81%95%E3%81%8E.gif",
+        "hues": ((35, 70),),  # yellow pajama
+        "dark": 110,
+    },
 }
 DEFAULT_PETS = ["chiikawa", "hachiware", "usagi"]
 
@@ -39,13 +50,13 @@ STATES: dict[str, tuple[int, int, int]] = {
     "look": (9, 16, 0),  # 16 gaze directions, clockwise from 12 o'clock
 }
 
-# Optional extra rows (11-14) for sheets that carry a group-dance routine; a sheet
-# without them simply never dances. Reserved for Pajama Partys once assets exist.
+# Optional extra rows (11-14): one dance loop split into four consecutive segments.
+# Sheets without them never dance. GIF-built sheets fill them from the GIF loop.
 DANCE_STATES: dict[str, tuple[int, int, int]] = {
-    "dance-point": (11, 8, 110),
-    "dance-up": (12, 6, 120),
-    "dance-spin": (13, 8, 90),
-    "dance-shake": (14, 8, 90),  # the signature move: back turned, hips swinging
+    "dance-1": (11, 8, 90),
+    "dance-2": (12, 8, 90),
+    "dance-3": (13, 8, 90),
+    "dance-4": (14, 8, 90),
 }
 ALL_STATES: dict[str, tuple[int, int, int]] = {**STATES, **DANCE_STATES}
 DANCE_SHEET_H = CELL_H * 15

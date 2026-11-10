@@ -10,9 +10,10 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
-from .catalog import CHARACTERS, RAW_BASE, REPO_URL
+from .catalog import CHARACTERS, GIF_SOURCES, RAW_BASE, REPO_URL
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+GIF_MAGIC = (b"GIF87a", b"GIF89a")
 FILES = ("pet.json", "spritesheet.png")
 Progress = Callable[[str, int, int], None]
 
@@ -33,6 +34,24 @@ def _validate(name: str, data: bytes) -> None:
             raise ValueError("pet.json 형식이 아닙니다")
 
 
+def _build_from_gif(key: str, folder: Path, progress: Progress | None) -> None:
+    """Fetch (or reuse) the source GIF and turn it into a spritesheet."""
+    from .gifsheet import build_sheet  # Qt-heavy; import lazily
+
+    spec = GIF_SOURCES[key]
+    source = folder / "source.gif"
+    if not source.is_file():
+        if progress:
+            progress(f"{CHARACTERS[key]} / source.gif", 0, 1)
+        data = _fetch(spec["url"])
+        if not data.startswith(GIF_MAGIC):
+            raise ValueError("GIF 형식이 아닙니다")
+        source.write_bytes(data)
+    build_sheet(source, folder / "spritesheet.png", spec["hues"], spec.get("dark", 110), progress)
+    meta = {"id": key, "displayName": CHARACTERS[key], "spriteVersionNumber": 2, "spritesheetPath": "spritesheet.png"}
+    (folder / "pet.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), "utf-8")
+
+
 def missing(root: Path, keys: list[str] | None = None) -> list[str]:
     keys = keys or list(CHARACTERS)
     return [k for k in keys if not (root / k / "spritesheet.png").is_file()]
@@ -50,6 +69,14 @@ def download(root: Path, keys: list[str] | None = None, progress: Progress | Non
             continue
         folder = root / key
         folder.mkdir(parents=True, exist_ok=True)
+        if key in GIF_SOURCES:
+            done += len(FILES)
+            if not (folder / "spritesheet.png").is_file():
+                try:
+                    _build_from_gif(key, folder, progress)
+                except Exception as exc:  # noqa: BLE001
+                    errors.append(f"{key}: {exc}")
+            continue
         for name in FILES:
             done += 1
             target = folder / name

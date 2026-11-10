@@ -128,6 +128,8 @@ class PetManager:
         spaces.setCheckable(True)
         spaces.setChecked(self.config.all_spaces)
         spaces.toggled.connect(self.set_all_spaces)
+        if self.dance.dancers():
+            menu.addAction("춤추기").triggered.connect(self.dance.start)
         menu.addSeparator()
         menu.addAction("모두 인사").triggered.connect(lambda: self.everyone("waving"))
         menu.addAction("모두 점프").triggered.connect(lambda: self.everyone("jumping"))

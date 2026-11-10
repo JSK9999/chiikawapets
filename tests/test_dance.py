@@ -33,7 +33,8 @@ def test_animator_sync_resets_timing():
     assert anim.index == 1
 
 
-def test_routine_uses_dance_states_and_is_about_fifteen_seconds():
+def test_routine_plays_the_loop_in_order_about_fifteen_seconds():
     assert all(state in DANCE_STATES for state, _ in ROUTINE)
-    assert step_ms("dance-spin", 1) == 8 * 90
+    assert [s for s, _ in ROUTINE[:4]] == list(DANCE_STATES)
+    assert step_ms("dance-3", 1) == 8 * 90
     assert 10_000 <= routine_ms() <= 20_000

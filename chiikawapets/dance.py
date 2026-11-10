@@ -1,7 +1,7 @@
-"""Group choreography: pets whose sheet has dance rows gather in a line and dance in sync.
+"""Choreography: pets whose sheet has dance rows gather in a line and dance in sync.
 
-No downloaded sheet has those rows yet, so this stays dormant until Pajama Partys
-assets arrive. Mechanics (goal walking, formation, lockstep switching) are ready.
+A single dancer simply dances where it stands. The four dance rows hold one loop
+in order, so the routine plays them back to back several times.
 """
 from __future__ import annotations
 
@@ -10,19 +10,15 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QObject, QTimer
 
-from .catalog import ALL_STATES
+from .catalog import ALL_STATES, DANCE_STATES
 from .motion import Brain, Plan
 
 if TYPE_CHECKING:
     from .manager import PetManager
     from .pet import PetWindow
 
-# The group's own routine as (state, loops): cheek pose -> arms up -> turn -> hip shake.
-ROUTINE: tuple[tuple[str, int], ...] = (
-    ("dance-point", 2), ("dance-up", 1), ("dance-spin", 1), ("dance-shake", 4),
-    ("dance-spin", 1), ("dance-point", 2), ("dance-up", 1), ("dance-shake", 4),
-    ("dance-spin", 1), ("dance-point", 1),
-)
+LOOPS = 5
+ROUTINE: tuple[tuple[str, int], ...] = tuple((state, 1) for _ in range(LOOPS) for state in DANCE_STATES)
 GATHER_TIMEOUT_MS = 25_000
 AUTO_MIN_S, AUTO_MAX_S = 180, 420
 SPACING = 1.15  # of sprite width
@@ -64,13 +60,13 @@ class GroupDance(QObject):
         self._schedule_auto()
 
     def dancers(self) -> list["PetWindow"]:
-        return [p for p in self.manager.pets if "dance-shake" in p.sheet.frames and not p.paused]
+        return [p for p in self.manager.pets if "dance-1" in p.sheet.frames and not p.paused]
 
     def start(self) -> bool:
         if self.phase != "idle":
             return False
         group = sorted(self.dancers(), key=lambda p: p.body.x)
-        if len(group) < 2:
+        if not group:
             self._schedule_auto()
             return False
         bounds = group[0].bounds()
@@ -107,12 +103,10 @@ class GroupDance(QObject):
         state, loops = ROUTINE[index]
         duration = step_ms(state, loops)
         live = sorted((p for p in self._dancers if p in self.manager.pets), key=lambda p: p.body.x)
-        for k, pet in enumerate(live):
+        for pet in live:
             pet.goal_x = None
             pet.start_plan(Plan(state, duration))
-            # cheek pose alternates hands across the line; the rest is unison
-            offset = (ALL_STATES[state][1] // 2) * (k % 2) if state == "dance-point" else 0
-            pet.anim.sync(state, offset)
+            pet.anim.sync(state, 0)
         QTimer.singleShot(duration, lambda: self._step(index + 1))
 
     def _finish(self) -> None:
