@@ -74,8 +74,14 @@ class GroupDance(QObject):
         self.phase, self._dancers, self._waiting = "gather", group, {id(p) for p in group}
         for pet, slot in zip(group, slots):
             pet.locked = True
-            pet.walk_to(slot)
-        self._watchdog.start(GATHER_TIMEOUT_MS)
+            if pet.stationary:
+                self._waiting.discard(id(pet))  # dances where it stands
+            else:
+                pet.walk_to(slot)
+        if not self._waiting:
+            self._begin()
+        else:
+            self._watchdog.start(GATHER_TIMEOUT_MS)
         return True
 
     def arrived(self, pet: "PetWindow") -> None:

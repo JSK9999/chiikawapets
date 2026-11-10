@@ -1,6 +1,7 @@
 from chiikawapets.catalog import DANCE_STATES
 from chiikawapets.dance import ROUTINE, SPACING, formation_slots, routine_ms, step_ms
-from chiikawapets.motion import Animator
+from chiikawapets.catalog import is_stationary
+from chiikawapets.motion import Animator, DanceLoop
 
 
 def test_slots_centred_and_spaced():
@@ -38,3 +39,15 @@ def test_routine_plays_the_loop_in_order_about_fifteen_seconds():
     assert [s for s, _ in ROUTINE[:4]] == list(DANCE_STATES)
     assert step_ms("dance-3", 1) == 8 * 90
     assert 10_000 <= routine_ms() <= 20_000
+
+
+def test_dance_loop_cycles_segments_in_order():
+    loop = DanceLoop()
+    states = [loop.next_plan().state for _ in range(6)]
+    assert states == ["dance-1", "dance-2", "dance-3", "dance-4", "dance-1", "dance-2"]
+    assert loop.next_plan().duration_ms == 8 * 90
+
+
+def test_pajama_usagi_is_stationary_and_others_roam():
+    assert is_stationary("usagi-pajama") is True
+    assert is_stationary("chiikawa") is False

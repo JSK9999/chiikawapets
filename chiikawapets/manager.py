@@ -95,10 +95,10 @@ class PetManager:
     def suggest_plan(self, pet: PetWindow) -> Plan | None:
         """Occasionally make two nearby pets greet each other."""
         now = time.monotonic()
-        if pet.locked or now - self._last_greet.get(id(pet), 0.0) < GREET_COOLDOWN_S or random.random() > 0.5:
+        if pet.locked or pet.stationary or now - self._last_greet.get(id(pet), 0.0) < GREET_COOLDOWN_S or random.random() > 0.5:
             return None
         for other in self.pets:
-            if other is pet or other.body.airborne or other.paused or other.locked:
+            if other is pet or other.body.airborne or other.paused or other.locked or other.stationary:
                 continue
             if abs(other.body.x - pet.body.x) < pet.width() * 1.3 and abs(other.body.y - pet.body.y) < pet.height():
                 self._last_greet[id(pet)] = self._last_greet[id(other)] = now
@@ -142,7 +142,9 @@ class PetManager:
         title = menu.addAction(CHARACTERS[pet.key])
         title.setEnabled(False)
         menu.addSeparator()
-        actions = [("인사하기", "waving"), ("점프", "jumping"), ("쉬기", "waiting"), ("왼쪽으로 걷기", "running-left"), ("오른쪽으로 걷기", "running-right")]
+        actions = [("인사하기", "waving"), ("점프", "jumping"), ("쉬기", "waiting")]
+        if not pet.stationary:
+            actions += [("왼쪽으로 걷기", "running-left"), ("오른쪽으로 걷기", "running-right")]
         for label, state in actions:
             menu.addAction(label).triggered.connect(lambda _=False, s=state: pet.do(s))
         pause = menu.addAction("다시 움직이기" if pet.paused else "잠깐 멈추기")

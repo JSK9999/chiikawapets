@@ -7,7 +7,8 @@ from PySide6.QtCore import QElapsedTimer, QPoint, QPointF, Qt, QTimer
 from PySide6.QtGui import QCursor, QGuiApplication, QMouseEvent, QPainter, QPaintEvent
 from PySide6.QtWidgets import QWidget
 
-from .motion import Animator, Body, Bounds, Brain, Plan
+from .catalog import is_stationary
+from .motion import Animator, Body, Bounds, Brain, DanceLoop, Plan
 from .sprites import SpriteSheet, gaze_index
 
 if TYPE_CHECKING:
@@ -36,11 +37,13 @@ class PetWindow(QWidget):
 
         self.anim = Animator()
         self.brain = Brain()
+        self.stationary = is_stationary(key) and "dance-1" in sheet.frames
+        self.loop = DanceLoop()
         self.body = Body(x, 0.0, sheet.size.height())
         self.body.y = self.bounds().ground if y is None else y
         self.body.airborne = self.body.y < self.bounds().ground - 1
         self.facing = 1
-        self.plan = Plan("idle", 1500)
+        self.plan = self.loop.next_plan() if self.stationary else Plan("idle", 1500)
         self.plan_elapsed = 0.0
         self.paused = False
         self.tossed = False
@@ -99,6 +102,8 @@ class PetWindow(QWidget):
         """User-requested action from a menu."""
         self.paused = False
         self.locked, self.goal_x = False, None
+        if state.startswith("running") and self.stationary:
+            return
         if state.startswith("running"):
             self.start_plan(Plan(state, 5000, 1 if state.endswith("right") else -1))
         elif state in ("idle", "waiting", "review"):
@@ -134,7 +139,10 @@ class PetWindow(QWidget):
             if moved != self.plan.direction:
                 self.start_plan(Plan("running-right" if moved > 0 else "running-left", self.plan.duration_ms, moved))
         if self.plan_elapsed >= self.plan.duration_ms and not self.body.airborne and not self.locked:
-            self.start_plan(self.manager.suggest_plan(self) or self.brain.next_plan(self.facing))
+            if self.stationary:
+                self.start_plan(self.loop.next_plan())
+            else:
+                self.start_plan(self.manager.suggest_plan(self) or self.brain.next_plan(self.facing))
         self.anim.set_state(self._visible_state())
 
     def _visible_state(self) -> str:

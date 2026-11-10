@@ -26,8 +26,13 @@ GIF_SOURCES: dict[str, dict] = {
         "url": "https://media1.tenor.com/m/J95LX7D_bhoAAAAC/%E3%81%A1%E3%81%84%E3%81%8B%E3%82%8F-%E3%81%86%E3%81%95%E3%81%8E.gif",
         "hues": ((35, 70),),  # yellow pajama
         "dark": 110,
+        "stationary": True,  # only dance frames exist, so stay put and keep dancing
     },
 }
+
+
+def is_stationary(key: str) -> bool:
+    return bool(GIF_SOURCES.get(key, {}).get("stationary", False))
 DEFAULT_PETS = ["chiikawa", "hachiware", "usagi", "usagi-pajama"]
 
 # Codex pet spritesheet v2: 8 columns, 192x208 cells, 1536x2288 PNG.

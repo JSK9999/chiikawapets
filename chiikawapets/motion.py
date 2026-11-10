@@ -4,7 +4,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 
-from .catalog import ALL_STATES, STATES
+from .catalog import ALL_STATES, DANCE_STATES, STATES
 
 GRAVITY = 2600.0  # px/s^2
 WALK_SPEED = 55.0  # px/s at height 128; scaled with size
@@ -69,6 +69,19 @@ class Brain:
     def one_shot(state: str, loops: int = 1) -> Plan:
         _, count, frame_ms = ALL_STATES[state]
         return Plan(state, count * frame_ms * loops)
+
+
+class DanceLoop:
+    """Plans for a pet that never roams: the four dance segments, forever, in order."""
+
+    def __init__(self) -> None:
+        self._states = list(DANCE_STATES)
+        self._index = 0
+
+    def next_plan(self) -> Plan:
+        state = self._states[self._index % len(self._states)]
+        self._index += 1
+        return Brain.one_shot(state)
 
 
 @dataclass
