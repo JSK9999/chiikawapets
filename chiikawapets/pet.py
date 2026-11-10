@@ -44,6 +44,7 @@ class PetWindow(QWidget):
         self.paused = False
         self.tossed = False
         self._press: QPoint | None = None
+        self._double = False
         self._dragging = False
         self._offset = QPoint()
         self._last_drag = QPointF()
@@ -133,11 +134,15 @@ class PetWindow(QWidget):
         if not self.sheet.hit(self.anim.state, self.anim.index, event.position().toPoint()):
             event.ignore()
             return
+        self._begin_press(event)
+        event.accept()
+
+    def _begin_press(self, event: QMouseEvent) -> None:
         self._press = event.globalPosition().toPoint()
         self._offset = self._press - self.pos()
         self._last_drag = event.globalPosition()
         self._velocity = QPointF()
-        event.accept()
+        self._double = False
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802
         if self._press is None:
@@ -163,12 +168,14 @@ class PetWindow(QWidget):
             self.body.toss(vx, vy)
             self.tossed = True
             self.start_plan(Plan("failed", 10_000))
-        else:
+        elif not self._double:
             self.do("waving")
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:  # noqa: N802
+        """Second press of a double click: jump, but keep drag possible."""
         if event.button() == Qt.MouseButton.LeftButton:
-            self._press = None
+            self._begin_press(event)
+            self._double = True
             self.do("jumping")
 
     def contextMenuEvent(self, event) -> None:  # noqa: N802
