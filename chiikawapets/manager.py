@@ -10,7 +10,7 @@ from PySide6.QtGui import QAction, QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from . import macos
-from .catalog import CHARACTERS, SIZE_PRESETS
+from .catalog import CHARACTERS, GENERATED, SIZE_PRESETS
 from .config import Config
 from .motion import Brain, Plan
 from .paths import sheet_path
@@ -122,6 +122,8 @@ class PetManager:
         spaces.setCheckable(True)
         spaces.setChecked(self.config.all_spaces)
         spaces.toggled.connect(self.set_all_spaces)
+        pajama = menu.addAction("파자마 파티즈 4명 소환")
+        pajama.triggered.connect(lambda: [self.spawn(k) for k in sorted(GENERATED)])
         menu.addSeparator()
         menu.addAction("모두 인사").triggered.connect(lambda: self.everyone("waving"))
         menu.addAction("모두 점프").triggered.connect(lambda: self.everyone("jumping"))
