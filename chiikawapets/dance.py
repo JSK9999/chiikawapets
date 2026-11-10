@@ -6,17 +6,31 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QObject, QTimer
 
-from .catalog import GENERATED
+from .catalog import ALL_STATES, GENERATED
 from .motion import Brain, Plan
 
 if TYPE_CHECKING:
     from .manager import PetManager
     from .pet import PetWindow
 
-DANCE_MS = 14_000
+# The group's own routine as (state, loops): cheek pose -> arms up -> turn -> hip shake.
+ROUTINE: tuple[tuple[str, int], ...] = (
+    ("dance-point", 2), ("dance-up", 1), ("dance-spin", 1), ("dance-shake", 4),
+    ("dance-spin", 1), ("dance-point", 2), ("dance-up", 1), ("dance-shake", 4),
+    ("dance-spin", 1), ("dance-point", 1),
+)
 GATHER_TIMEOUT_MS = 25_000
 AUTO_MIN_S, AUTO_MAX_S = 180, 420
 SPACING = 1.15  # of sprite width
+
+
+def step_ms(state: str, loops: int) -> int:
+    _, count, frame_ms = ALL_STATES[state]
+    return count * frame_ms * loops
+
+
+def routine_ms(routine=ROUTINE) -> int:
+    return sum(step_ms(state, loops) for state, loops in routine)
 
 
 def formation_slots(xs: list[float], width: float, left: float, right: float) -> list[float]:
@@ -74,15 +88,28 @@ class GroupDance(QObject):
             return
         self._watchdog.stop()
         self.phase = "dance"
-        live = [p for p in self._dancers if p in self.manager.pets]
-        for k, pet in enumerate(sorted(live, key=lambda p: p.body.x)):
-            pet.goal_x = None
-            pet.start_plan(Plan("running", DANCE_MS))
-            pet.anim.sync("running", k % 2)  # neighbours half a beat apart: a wave
         for pet in self.manager.pets:
-            if pet not in live and not pet.locked:
+            if pet not in self._dancers and not pet.locked:
                 pet.start_plan(Brain.one_shot("waving", 3))
-        QTimer.singleShot(DANCE_MS, self._finish)
+        self._step(0)
+
+    def _step(self, index: int) -> None:
+        """Switch every dancer to the next move at the same instant."""
+        if self.phase != "dance":
+            return
+        if index >= len(ROUTINE):
+            self._finish()
+            return
+        state, loops = ROUTINE[index]
+        duration = step_ms(state, loops)
+        live = sorted((p for p in self._dancers if p in self.manager.pets), key=lambda p: p.body.x)
+        for k, pet in enumerate(live):
+            pet.goal_x = None
+            pet.start_plan(Plan(state, duration))
+            # cheek pose alternates hands across the line; the rest is unison
+            offset = (ALL_STATES[state][1] // 2) * (k % 2) if state == "dance-point" else 0
+            pet.anim.sync(state, offset)
+        QTimer.singleShot(duration, lambda: self._step(index + 1))
 
     def _finish(self) -> None:
         for pet in self._dancers:

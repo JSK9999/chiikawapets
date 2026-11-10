@@ -7,7 +7,7 @@ from pathlib import Path
 from PySide6.QtCore import QPoint, QRect, QSize, Qt
 from PySide6.QtGui import QImage, QPixmap
 
-from .catalog import CELL_H, CELL_W, COLS, SHEET_H, SHEET_W, STATES
+from .catalog import ALL_STATES, CELL_H, CELL_W, COLS, SHEET_H, SHEET_W
 
 
 class SpriteSheet:
@@ -15,14 +15,17 @@ class SpriteSheet:
 
     def __init__(self, path: Path, height: int, dpr: float = 1.0):
         image = QImage(str(path))
-        if image.isNull() or image.size() != QSize(SHEET_W, SHEET_H):
+        if image.isNull() or image.width() != SHEET_W or image.height() < SHEET_H or image.height() % CELL_H:
             raise ValueError(f"스프라이트시트 형식이 아닙니다: {path}")
         image = image.convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
         self.dpr = dpr
         self.size = QSize(round(CELL_W * height / CELL_H), height)
         target = QSize(round(self.size.width() * dpr), round(self.size.height() * dpr))
+        rows = image.height() // CELL_H
         self.frames: dict[str, list[QPixmap]] = {
-            state: self._slice(image, row, count, target) for state, (row, count, _) in STATES.items()
+            state: self._slice(image, row, count, target)
+            for state, (row, count, _) in ALL_STATES.items()
+            if row + (count - 1) // COLS < rows
         }
 
     def _slice(self, image: QImage, row: int, count: int, target: QSize) -> list[QPixmap]:

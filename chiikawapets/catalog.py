@@ -45,4 +45,15 @@ STATES: dict[str, tuple[int, int, int]] = {
     "look": (9, 16, 0),  # 16 gaze directions, clockwise from 12 o'clock
 }
 
+# Extra rows used only by the locally drawn Pajama Partys sheets (14 rows tall).
+# They reproduce the group's own routine: hand-on-cheek bounce, arms up, spin.
+DANCE_STATES: dict[str, tuple[int, int, int]] = {
+    "dance-point": (11, 8, 110),
+    "dance-up": (12, 6, 120),
+    "dance-spin": (13, 8, 90),
+    "dance-shake": (14, 8, 90),  # the signature move: back turned, hips swinging
+}
+ALL_STATES: dict[str, tuple[int, int, int]] = {**STATES, **DANCE_STATES}
+DANCE_SHEET_H = CELL_H * 15
+
 SIZE_PRESETS: dict[str, int] = {"작게": 96, "보통": 128, "크게": 160, "아주 크게": 208}

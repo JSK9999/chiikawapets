@@ -4,7 +4,7 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 
-from .catalog import STATES
+from .catalog import ALL_STATES, STATES
 
 GRAVITY = 2600.0  # px/s^2
 WALK_SPEED = 55.0  # px/s at height 128; scaled with size
@@ -37,7 +37,7 @@ class Animator:
         self.state, self.index, self._elapsed = state, index, 0.0
 
     def step(self, dt_ms: float) -> None:
-        _, count, frame_ms = STATES[self.state]
+        _, count, frame_ms = ALL_STATES[self.state]
         if frame_ms <= 0:
             return
         self._elapsed += dt_ms
@@ -67,7 +67,7 @@ class Brain:
 
     @staticmethod
     def one_shot(state: str, loops: int = 1) -> Plan:
-        _, count, frame_ms = STATES[state]
+        _, count, frame_ms = ALL_STATES[state]
         return Plan(state, count * frame_ms * loops)
 
 

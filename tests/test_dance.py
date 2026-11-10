@@ -1,4 +1,5 @@
-from chiikawapets.dance import SPACING, formation_slots
+from chiikawapets.catalog import DANCE_STATES
+from chiikawapets.dance import ROUTINE, SPACING, formation_slots, routine_ms, step_ms
 from chiikawapets.motion import Animator
 
 
@@ -30,3 +31,9 @@ def test_animator_sync_resets_timing():
     assert anim.index == 1
     anim.step(119)
     assert anim.index == 1
+
+
+def test_routine_uses_dance_states_and_is_about_fifteen_seconds():
+    assert all(state in DANCE_STATES for state, _ in ROUTINE)
+    assert step_ms("dance-spin", 1) == 8 * 90
+    assert 10_000 <= routine_ms() <= 20_000
