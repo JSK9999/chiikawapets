@@ -28,7 +28,7 @@ GIF_SOURCES: dict[str, dict] = {
         "dark": 110,
     },
 }
-DEFAULT_PETS = ["chiikawa", "hachiware", "usagi"]
+DEFAULT_PETS = ["chiikawa", "hachiware", "usagi", "usagi-pajama"]
 
 # Codex pet spritesheet v2: 8 columns, 192x208 cells, 1536x2288 PNG.
 SHEET_W, SHEET_H = 1536, 2288

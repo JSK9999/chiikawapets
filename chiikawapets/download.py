@@ -97,6 +97,9 @@ def main() -> int:
     from .paths import assets_dir
 
     root = assets_dir()
+    if not missing(root):
+        print(f"이미 준비됨: {root}")
+        return 0
     print(f"원본: {REPO_URL}")
     print("원작자의 이용 안내(비상업, 재배포 금지)를 존중해 개인용으로만 사용하세요.")
     print(f"저장 위치: {root}")

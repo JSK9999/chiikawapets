@@ -14,20 +14,14 @@ from .paths import assets_dir
 
 
 def ensure_assets(config: Config) -> bool:
+    """Fetch missing character assets for personal use, showing progress. No prompt:
+    start.command normally does this in the terminal first, so this is a fallback."""
     root = assets_dir()
     if not missing(root, config.pets):
         return True
-    answer = QMessageBox.question(
-        None,
-        "캐릭터 이미지 받기",
-        "캐릭터 스프라이트가 아직 없습니다.\n\n"
-        f"원본 팬 프로젝트({REPO_URL})에서 개인용으로 내려받을까요?\n"
-        "비상업·재배포 금지 조건을 지켜 주세요.\n\n"
-        f"저장 위치: {root}",
-    )
-    if answer != QMessageBox.StandardButton.Yes:
-        return False
-    dialog = QProgressDialog("다운로드 중...", None, 0, 1)
+    print(f"캐릭터 이미지를 개인용으로 내려받습니다 (원본: {REPO_URL}) -> {root}")
+    dialog = QProgressDialog("캐릭터 이미지 다운로드 중...", None, 0, 1)
+    dialog.setWindowTitle("Chiikawa Pets")
     dialog.setMinimumDuration(0)
     dialog.show()
 
