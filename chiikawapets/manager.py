@@ -54,6 +54,7 @@ class PetManager:
         x = min(max(x, float(avail.left())), float(max_x))
         pet = PetWindow(key, sheet, self, x, y)
         pet.show()
+        macos.disable_shadow(int(pet.winId()))
         macos.show_on_all_spaces(int(pet.winId()), self.config.all_spaces)
         self.pets.append(pet)
         if persist:

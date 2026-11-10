@@ -28,6 +28,7 @@ class PetWindow(QWidget):
             | Qt.WindowType.WindowStaysOnTopHint
             | Qt.WindowType.Tool
             | Qt.WindowType.WindowDoesNotAcceptFocus
+            | Qt.WindowType.NoDropShadowWindowHint  # cached shadows leave ghost outlines
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
@@ -149,6 +150,9 @@ class PetWindow(QWidget):
     # ----- painting -------------------------------------------------------
     def paintEvent(self, event: QPaintEvent) -> None:  # noqa: N802
         painter = QPainter(self)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.fillRect(self.rect(), Qt.GlobalColor.transparent)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.drawPixmap(0, 0, self.sheet.frame(self.anim.state, self.anim.index))
 

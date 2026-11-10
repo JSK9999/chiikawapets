@@ -44,6 +44,29 @@ def hide_dock_icon() -> None:
         pass
 
 
+def disable_shadow(win_id: int) -> None:
+    """macOS caches a window's shadow; an animated transparent sprite leaves ghosts."""
+    if sys.platform != "darwin" or not win_id:
+        return
+    try:
+        window = _send(int(win_id), b"window")
+        if window:
+            _send(window, b"setHasShadow:", 0)
+            _send(window, b"invalidateShadow")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def has_shadow(win_id: int) -> bool | None:
+    if sys.platform != "darwin" or not win_id:
+        return None
+    try:
+        window = _send(int(win_id), b"window")
+        return bool(_send(window, b"hasShadow")) if window else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def show_on_all_spaces(win_id: int, enabled: bool = True) -> None:
     """Pet follows across Spaces and sits above full-screen apps."""
     if sys.platform != "darwin" or not win_id:
