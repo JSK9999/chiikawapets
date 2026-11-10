@@ -16,6 +16,7 @@ cd chiikawapets
 - 캐릭터를 **클릭**하면 인사, **더블클릭**하면 점프, **드래그해서 던지면** 떨어졌다가 착지한다.
 - **우클릭**으로 캐릭터 추가, 크기, 춤추기, 숨기기, 종료를 고른다. Dock 아이콘은 없으니 종료는 여기서 한다.
 - Python이 없으면 https://www.python.org/downloads/ 에서 설치한다. `start.command`가 열리지 않으면 `bash start.command`.
+- **업데이트**: `./start.command`를 다시 실행하면 자동으로 최신 버전을 받아온다. 수동으로는 `git pull`.
 
 ## 에셋 출처와 조건
 

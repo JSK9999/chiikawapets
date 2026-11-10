@@ -8,6 +8,10 @@ if ! command -v python3 >/dev/null 2>&1; then
   read -r -p 'Enter를 누르면 종료합니다...'
   exit 1
 fi
+# Pull updates when this is a git checkout (silently skipped offline or with local edits).
+if [ -d .git ] && command -v git >/dev/null 2>&1; then
+  git pull --ff-only -q 2>/dev/null && echo '최신 버전으로 업데이트했습니다.' || true
+fi
 if [ ! -d .venv ]; then
   echo '[1/3] 가상환경 만드는 중...'
   python3 -m venv .venv
