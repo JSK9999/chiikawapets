@@ -1,4 +1,8 @@
-"""Group choreography: Pajama Partys gather in a line and dance in sync."""
+"""Group choreography: pets whose sheet has dance rows gather in a line and dance in sync.
+
+No downloaded sheet has those rows yet, so this stays dormant until Pajama Partys
+assets arrive. Mechanics (goal walking, formation, lockstep switching) are ready.
+"""
 from __future__ import annotations
 
 import random
@@ -6,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QObject, QTimer
 
-from .catalog import ALL_STATES, GENERATED
+from .catalog import ALL_STATES
 from .motion import Brain, Plan
 
 if TYPE_CHECKING:
@@ -60,7 +64,7 @@ class GroupDance(QObject):
         self._schedule_auto()
 
     def dancers(self) -> list["PetWindow"]:
-        return [p for p in self.manager.pets if p.key in GENERATED and not p.paused]
+        return [p for p in self.manager.pets if "dance-shake" in p.sheet.frames and not p.paused]
 
     def start(self) -> bool:
         if self.phase != "idle":

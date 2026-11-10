@@ -5,12 +5,12 @@ import random
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QPoint, QTimer
+from PySide6.QtCore import QPoint
 from PySide6.QtGui import QAction, QGuiApplication, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from . import macos
-from .catalog import CHARACTERS, GENERATED, SIZE_PRESETS
+from .catalog import CHARACTERS, SIZE_PRESETS
 from .config import Config
 from .dance import GroupDance
 from .motion import Brain, Plan
@@ -87,12 +87,6 @@ class PetManager:
         for pet in self.pets:
             macos.show_on_all_spaces(int(pet.winId()), enabled)
 
-    def summon_pajama(self) -> None:
-        present = {p.key for p in self.pets}
-        for key in sorted(GENERATED - present):
-            self.spawn(key)
-        QTimer.singleShot(1500, self.dance.start)
-
     def everyone(self, state: str) -> None:
         for pet in self.pets:
             pet.do(state)
@@ -134,9 +128,6 @@ class PetManager:
         spaces.setCheckable(True)
         spaces.setChecked(self.config.all_spaces)
         spaces.toggled.connect(self.set_all_spaces)
-        pajama = menu.addAction("파자마 파티즈 4명 소환")
-        pajama.triggered.connect(self.summon_pajama)
-        menu.addAction("파자마 파티즈 단체 춤").triggered.connect(self.dance.start)
         menu.addSeparator()
         menu.addAction("모두 인사").triggered.connect(lambda: self.everyone("waving"))
         menu.addAction("모두 점프").triggered.connect(lambda: self.everyone("jumping"))

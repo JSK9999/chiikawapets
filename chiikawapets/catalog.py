@@ -16,13 +16,7 @@ CHARACTERS: dict[str, str] = {
     "furuhonya": "후루혼야",
     "anoko": "아노코",
     "dekatsuyo": "데카츠요",
-    "pajama-green": "파자마 파티즈 (초록)",
-    "pajama-pink": "파자마 파티즈 (분홍)",
-    "pajama-purple": "파자마 파티즈 (보라)",
-    "pajama-white": "파자마 파티즈 (흰색)",
 }
-# Drawn locally by chiikawapets.pajama instead of downloaded from the reference repo.
-GENERATED = {"pajama-green", "pajama-pink", "pajama-purple", "pajama-white"}
 DEFAULT_PETS = ["chiikawa", "hachiware", "usagi"]
 
 # Codex pet spritesheet v2: 8 columns, 192x208 cells, 1536x2288 PNG.
@@ -45,8 +39,8 @@ STATES: dict[str, tuple[int, int, int]] = {
     "look": (9, 16, 0),  # 16 gaze directions, clockwise from 12 o'clock
 }
 
-# Extra rows used only by the locally drawn Pajama Partys sheets (14 rows tall).
-# They reproduce the group's own routine: hand-on-cheek bounce, arms up, spin.
+# Optional extra rows (11-14) for sheets that carry a group-dance routine; a sheet
+# without them simply never dances. Reserved for Pajama Partys once assets exist.
 DANCE_STATES: dict[str, tuple[int, int, int]] = {
     "dance-point": (11, 8, 110),
     "dance-up": (12, 6, 120),

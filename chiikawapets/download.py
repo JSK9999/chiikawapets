@@ -10,7 +10,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
-from .catalog import CHARACTERS, GENERATED, RAW_BASE, REPO_URL
+from .catalog import CHARACTERS, RAW_BASE, REPO_URL
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 FILES = ("pet.json", "spritesheet.png")
@@ -33,24 +33,20 @@ def _validate(name: str, data: bytes) -> None:
             raise ValueError("pet.json 형식이 아닙니다")
 
 
-def downloadable() -> list[str]:
-    return [k for k in CHARACTERS if k not in GENERATED]
-
-
 def missing(root: Path, keys: list[str] | None = None) -> list[str]:
-    keys = keys or downloadable()
-    return [k for k in keys if k not in GENERATED and not (root / k / "spritesheet.png").is_file()]
+    keys = keys or list(CHARACTERS)
+    return [k for k in keys if not (root / k / "spritesheet.png").is_file()]
 
 
 def download(root: Path, keys: list[str] | None = None, progress: Progress | None = None) -> list[str]:
     """Download missing pets into root. Returns a list of error strings."""
-    keys = keys or downloadable()
+    keys = keys or list(CHARACTERS)
     errors: list[str] = []
     total = len(keys) * len(FILES)
     done = 0
     for key in keys:
-        if key not in CHARACTERS or key in GENERATED:
-            errors.append(f"{key}: 다운로드 대상이 아닙니다")
+        if key not in CHARACTERS:
+            errors.append(f"{key}: 알 수 없는 캐릭터")
             continue
         folder = root / key
         folder.mkdir(parents=True, exist_ok=True)

@@ -6,24 +6,15 @@ import sys
 from PySide6.QtWidgets import QApplication, QMessageBox, QProgressDialog
 
 from . import macos
-from .catalog import GENERATED, REPO_URL
+from .catalog import REPO_URL
 from .config import Config
 from .download import download, missing
 from .manager import PetManager
-from .pajama import generate
 from .paths import assets_dir
-
-
-def ensure_generated(root) -> None:
-    """Pajama Partys are drawn on this machine; (re)generate when absent."""
-    absent = [k for k in GENERATED if not (root / k / "spritesheet.png").is_file()]
-    if absent:
-        generate(root, absent)
 
 
 def ensure_assets(config: Config) -> bool:
     root = assets_dir()
-    ensure_generated(root)
     if not missing(root, config.pets):
         return True
     answer = QMessageBox.question(
