@@ -1,0 +1,8 @@
+# 원작자 재배포 금지 조건 준수: 캐릭터 에셋은 커밋하지 않는다
+assets/
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/
+.DS_Store
