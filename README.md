@@ -2,24 +2,32 @@
 
 치이카와 친구들이 맥 화면 아래를 돌아다니는 개인용 데스크톱 펫. 비공식 팬 프로젝트이며 비상업·개인 용도로만 사용한다.
 
+## 실행
+
+Python 3가 있는 맥에서 터미널에 아래를 붙여 넣으면 된다. 첫 실행은 라이브러리 설치와 캐릭터 이미지 다운로드 때문에
+1~2분 걸리고, 그다음부터는 바로 뜬다.
+
+```bash
+git clone https://github.com/JSK9999/chiikawapets.git
+cd chiikawapets
+./start.command
+```
+
+- 캐릭터를 **클릭**하면 인사, **더블클릭**하면 점프, **드래그해서 던지면** 떨어졌다가 착지한다.
+- **우클릭**으로 캐릭터 추가, 크기, 춤추기, 숨기기, 종료를 고른다. Dock 아이콘은 없으니 종료는 여기서 한다.
+- Python이 없으면 https://www.python.org/downloads/ 에서 설치한다. `start.command`가 열리지 않으면 `bash start.command`.
+
 ## 에셋 출처와 조건
 
 캐릭터 스프라이트는 [heelee912/chiikawa-dots-pets](https://github.com/heelee912/chiikawa-dots-pets)의
 `pets/<id>/spritesheet.png`(투명 PNG, 1536x2288, 192x208 셀)를 그대로 사용한다. 원 저작권은 나가노(ナガノ) 및 권리자에게 있고,
 해당 저장소는 **상업적 이용과 재배포를 금지**한다. 그래서 이 저장소에는 이미지가 들어 있지 않으며(`.gitignore`), 앱이 첫 실행 때
-사용자의 맥에만 내려받는다. 이 저장소를 공개 배포하거나 에셋이 포함된 `.app`을 나눠 주지 말 것.
+사용자의 맥에만 내려받는다. 코드는 공유해도 되지만 내려받은 이미지나 에셋이 포함된 `.app`은 나눠 주지 말 것.
 
 GIF(`assets/motions/*.gif`) 대신 스프라이트시트를 쓰는 이유: GIF는 알파 채널이 없고 크림색 배경(#f5f0e8)이 깔려 있어서 펫 주변에
 네모 박스가 보인다. 스프라이트시트는 완전 투명이고 상태도 10종이다.
 
-## 실행
-
-```bash
-cd /Users/js/orca/chiikawapets
-./start.command          # 첫 실행: .venv 생성 + PySide6 설치, 에셋 다운로드 여부를 묻는 창이 뜸
-```
-
-수동:
+## 수동 실행과 에셋 위치
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
